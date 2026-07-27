@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2d8a6e">
+<title>我的工作台</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<style>
+  :root {
+    --bg: #f4f7f6;
+    --surface: #ffffff;
+    --ink: #1a2e2a;
+    --muted: #6b7c78;
+    --rule: #e0e8e5;
+    --accent: #2d8a6e;
+    --accent-light: #e8f5f0;
+    --accent2: #e07b3c;
+    --accent2-light: #fdf2e9;
+    --danger: #dc3545;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --radius: 14px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --tab-height: 64px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Layout */
+  #app {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: calc(var(--tab-height) + var(--safe-bottom));
+  }
+  .page {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 1rem;
+    display: none;
+    animation: fadeIn 0.25s ease;
+  }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Header */
+  .page-header {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+    padding: 0.5rem 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .page-header h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .page-header .date {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:active { background: #247a60; }
+  .btn-secondary { background: var(--surface); color: var(--ink); border: 1px solid var(--rule); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 0.4rem 0.7rem; font-size: 0.8rem; border-radius: 8px; }
+  .btn-icon {
+    width: 36px; height: 36px; padding: 0; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--rule);
+    font-size: 1.1rem;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: var(--shadow);
+    position: relative;
+    transition: transform 0.15s;
+  }
+  .card:active { transform: scale(0.99); }
+  .card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* Forms */
+  .input, .textarea, select {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1.5px solid var(--rule);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .input:focus, .textarea:focus, select:focus { border-color: var(--accent); }
+  .textarea { min-height: 80px; resize: vertical; }
+  .form-group { margin-bottom: 0.8rem; }
+  .form-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* Checkbox */
+  .checkbox-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    cursor: pointer;
+  }
+  .checkbox-wrap input[type="checkbox"] {
+    width: 22px; height: 22px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .checkbox-wrap .check-text {
+    flex: 1;
+    font-size: 0.92rem;
+  }
+  .checkbox-wrap .check-text.done {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .tag-green { background: var(--accent-light); color: var(--accent); }
+  .tag-orange { background: var(--accent2-light); color: var(--accent2); }
+  .tag-red { background: #fde8e8; color: var(--danger); }
+  .tag-gray { background: #f0f0f0; color: var(--muted); }
+
+  /* Stars */
+  .stars {
+    display: flex;
+    gap: 0.15rem;
+    font-size: 1.1rem;
+    color: #ddd;
+  }
+  .stars .star.active { color: #ffc107; }
+
+  /* Progress */
+  .progress-bar {
+    height: 6px;
+    background: var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 0.5rem; opacity: 0.4; }
+  .empty-state p { font-size: 0.9rem; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--tab-height) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+  }
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    height: var(--tab-height);
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.65rem;
+    cursor: pointer;
+    transition: color 0.15s;
+    position: relative;
+  }
+  .tab-btn .tab-icon { font-size: 1.35rem; line-height: 1; }
+  .tab-btn.active { color: var(--accent); }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 0 0 3px 3px;
+  }
+  .tab-badge {
+    position: absolute;
+    top: 6px;
+    right: calc(50% - 18px);
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    animation: fadeIn 0.2s;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-sheet {
+    background: var(--surface);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    border-radius: 20px 20px 0 0;
+    padding: 1.2rem 1rem calc(1.2rem + var(--safe-bottom));
+    overflow-y: auto;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .modal-header h3 { font-size: 1.1rem; }
+
+  /* Search */
+  .search-box {
+    position: relative;
+    margin-bottom: 0.75rem;
+  }
+  .search-box input {
+    padding-left: 2.2rem;
+  }
+  .search-box::before {
+    content: '🔍';
+    position: absolute;
+    left: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+    opacity: 0.5;
+  }
+
+  /* Filter chips */
+  .chips {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.5rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    border: 1.5px solid var(--rule);
+    background: var(--surface);
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  /* Stats summary */
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .summary-item {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 0.8rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .summary-item .num {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .summary-item .lbl {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 0.1rem;
+  }
+
+  /* Color dots for notes */
+  .color-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.15s;
+  }
+  .color-dot.selected { border-color: var(--ink); }
+  .color-yellow { background: #ffe066; }
+  .color-green { background: #8ce99a; }
+  .color-blue { background: #74c0fc; }
+  .color-pink { background: #f783ac; }
+  .color-purple { background: #b197fc; }
+
+  /* Responsive: desktop */
+  @media (min-width: 768px) {
+    #app {
+      max-width: 480px;
+      margin: 0 auto;
+      border-left: 1px solid var(--rule);
+      border-right: 1px solid var(--rule);
+    }
+    .tab-bar {
+      max-width: 480px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ========== TAB 1: 每日任务 ========== -->
+  <div class="page active" id="page-tasks">
+    <div class="page-header">
+      <div>
+        <h1>每日任务</h1>
+        <div class="date" id="task-date"></div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-icon" onclick="app.clearCompletedTasks()" title="清除已完成">🧹</button>
+        <button class="btn btn-primary btn-sm" onclick="app.openModal('task')">+ 新增</button>
+      </div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-item"><div class="num" id="stat-total">0</div><div class="lbl">总任务</div></div>
+      <div class="summary-item"><div class="num" id="stat-done">0</div><div class="lbl">已完成</div></div>
+      <div class="summary-item"><div class="num" id="stat-rate">0%</div><div class="lbl">完成率</div></div>
+    </div>
+    <div class="progress-bar"><div class="fill" id="task-progress" style="width:0%"></div></div>
+    <div style="margin-top:1rem;" id="task-list"></div>
+  </div>
+
+  <!-- ========== TAB 2: 每日英语 ========== -->
+  <div class="page" id="page-english">
+    <div class="page-header">
+      <div>
+        <h1>每日英语</h1>
+        <div class="date">单词 / 短语 / 句子积累</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-icon" onclick="app.reviewEnglish()" title="随机复习">🎲</button>
+        <button class="btn btn-primary btn-sm" onclick="app.openModal('english')">+ 新增</button>
+      </div>
+    </div>
+    <div class="chips" id="english-filters">
+      <button class="chip active" data-filter="all" onclick="app.filterEnglish('all')">全部</button>
+      <button class="chip" data-filter="word" onclick="app.filterEnglish('word')">单词</button>
+      <button class="chip" data-filter="phrase" onclick="app.filterEnglish('phrase')">短语</button>
+      <button class="chip" data-filter="sentence" onclick="app.filterEnglish('sentence')">句子</button>
+      <button class="chip" data-filter="new" onclick="app.filterEnglish('new')">生词</button>
+    </div>
+    <div id="english-list"></div>
+  </div>
+
+  <!-- ========== TAB 3: 练车日记 ========== -->
+  <div class="page" id="page-driving">
+    <div class="page-header">
+      <div>
+        <h1>练车日记</h1>
+        <div class="date">记录每一次进步</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary btn-sm" onclick="app.openModal('driving')">+ 新增</button>
+      </div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-item"><div class="num" id="stat-drive-count">0</div><div class="lbl">总次数</div></div>
+      <div class="summary-item"><div class="num" id="stat-drive-hours">0</div><div class="lbl">总时长(h)</div></div>
+      <div class="summary-item"><div class="num" id="stat-drive-avg">0</div><div class="lbl">平均评分</div></div>
+    </div>
+    <div id="driving-list"></div>
+  </div>
+
+  <!-- ========== TAB 4: 备忘录 ========== -->
+  <div class="page" id="page-notes">
+    <div class="page-header">
+      <div>
+        <h1>备忘录</h1>
+        <div class="date">快速记录，随时查看</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary btn-sm" onclick="app.openModal('note')">+ 新增</button>
+      </div>
+    </div>
+    <div class="search-box">
+      <input type="text" class="input" id="note-search" placeholder="搜索备忘录..." oninput="app.searchNotes()">
+    </div>
+    <div class="chips" id="note-filters">
+      <button class="chip active" data-filter="all" onclick="app.filterNotes('all')">全部</button>
+      <button class="chip" data-filter="yellow" onclick="app.filterNotes('yellow')">🟡</button>
+      <button class="chip" data-filter="green" onclick="app.filterNotes('green')">🟢</button>
+      <button class="chip" data-filter="blue" onclick="app.filterNotes('blue')">🔵</button>
+      <button class="chip" data-filter="pink" onclick="app.filterNotes('pink')">🩷</button>
+      <button class="chip" data-filter="purple" onclick="app.filterNotes('purple')">🟣</button>
+    </div>
+    <div id="notes-list"></div>
+  </div>
+
+  <!-- ========== TAB 5: 设置/同步 ========== -->
+  <div class="page" id="page-settings">
+    <div class="page-header">
+      <div><h1>设置</h1></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">数据同步</div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.8rem;">
+        当前模式：<span id="sync-mode-text" class="tag tag-green">本地存储</span>
+      </p>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="app.exportData()">📤 导出JSON</button>
+        <button class="btn btn-secondary btn-sm" onclick="app.importData()">📥 导入JSON</button>
+        <button class="btn btn-secondary btn-sm" onclick="app.generateShareLink()">🔗 生成分享链接</button>
+      </div>
+      <div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--rule);">
+        <p style="font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem;">实时云同步</p>
+        <div class="form-group">
+          <label>工作区ID（电脑和手机必须填同一个）</label>
+          <div style="display:flex;gap:0.5rem;">
+            <input type="text" class="input" id="workspace-id" placeholder="例如：my-daily-workbench">
+            <button class="btn btn-secondary btn-sm" onclick="app.copyWorkspaceId()">复制</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Supabase URL</label>
+          <input type="text" class="input" id="sb-url" placeholder="https://xxxxx.supabase.co">
+        </div>
+        <div class="form-group">
+          <label>Supabase Anon Key</label>
+          <input type="text" class="input" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIs...">
+        </div>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="btn btn-primary btn-sm" onclick="app.connectSupabase()">连接并启用同步</button>
+          <button class="btn btn-secondary btn-sm" onclick="app.disconnectSupabase()">断开</button>
+        </div>
+        <p style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem;">
+          提示：先在 Supabase 执行压缩包里的 <strong>supabase-setup.sql</strong>，再把项目 URL、Anon Key 和同一个工作区ID填到电脑与手机端。
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">关于</div>
+      <p style="font-size:0.85rem;color:var(--muted);">
+        我的工作台 v1.0<br>
+        数据存储在浏览器本地，请定期导出备份。<br>
+        安装为APP：浏览器菜单 → 添加到主屏幕
+      </p>
+    </div>
+
+    <button class="btn btn-danger btn-sm" onclick="app.clearAllData()" style="width:100%;margin-top:0.5rem;">⚠️ 清空所有数据</button>
+  </div>
+</div>
+
+<!-- Bottom Tab Bar -->
+<nav class="tab-bar">
+  <button class="tab-btn active" onclick="app.switchTab('tasks')">
+    <span class="tab-icon">✅</span>
+    <span>任务</span>
+    <span class="tab-badge" id="badge-tasks" style="display:none">0</span>
+  </button>
+  <button class="tab-btn" onclick="app.switchTab('english')">
+    <span class="tab-icon">🌍</span>
+    <span>英语</span>
+    <span class="tab-badge" id="badge-english" style="display:none">0</span>
+  </button>
+  <button class="tab-btn" onclick="app.switchTab('driving')">
+    <span class="tab-icon">🚗</span>
+    <span>练车</span>
+  </button>
+  <button class="tab-btn" onclick="app.switchTab('notes')">
+    <span class="tab-icon">📝</span>
+    <span>备忘</span>
+  </button>
+  <button class="tab-btn" onclick="app.switchTab('settings')">
+    <span class="tab-icon">⚙️</span>
+    <span>设置</span>
+  </button>
+</nav>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="app.closeModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modal-title">新增</h3>
+      <button class="btn btn-icon" onclick="app.closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA STORE =====================
+const Store = {
+  key: 'workspace_data_v1',
+  sb: null,
+  channel: null,
+  syncEnabled: false,
+  workspaceId: 'default',
+  isApplyingRemote: false,
+
+  get() {
+    try {
+      const raw = localStorage.getItem(this.key);
+      return raw ? JSON.parse(raw) : this.defaultData();
+    } catch { return this.defaultData(); }
+  },
+
+  set(data) {
+    localStorage.setItem(this.key, JSON.stringify(data));
+    this.broadcast(data);
+    if (this.syncEnabled && this.sb && !this.isApplyingRemote) this.pushToCloud(data);
+  },
+
+  defaultData() {
+    return { tasks: [], english: [], driving: [], notes: [], settings: {} };
+  },
+
+  broadcast(data) {
+    try {
+      const bc = new BroadcastChannel('workspace_sync');
+      bc.postMessage({ type: 'update', data, time: Date.now() });
+      bc.close();
+    } catch {}
+  },
+
+  async initSupabase(url, key, workspaceId) {
+    if (!url || !key || !workspaceId) return false;
+    try {
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+      this.sb = createClient(url, key);
+      this.workspaceId = workspaceId;
+      this.syncEnabled = true;
+      await this.pullFromCloud();
+      if (this.channel) await this.sb.removeChannel(this.channel);
+      this.channel = this.sb.channel('workspace-' + workspaceId).on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'workspace_data',
+        filter: 'workspace_id=eq.' + workspaceId
+      }, payload => {
+        if (payload.new && payload.new.data) {
+          this.isApplyingRemote = true;
+          localStorage.setItem(this.key, JSON.stringify(payload.new.data));
+          app.data = payload.new.data;
+          app.renderAll();
+          this.isApplyingRemote = false;
+          app.updateSyncStatus('云同步已连接', 'tag-green');
+        }
+      }).subscribe((status) => {
+        if (status === 'SUBSCRIBED') app.updateSyncStatus('云同步已连接', 'tag-green');
+      });
+      await this.pushToCloud(app.data);
+      return true;
+    } catch (e) { console.error(e); return false; }
+  },
+
+  async pushToCloud(data) {
+    if (!this.sb) return;
+    try {
+      await this.sb.from('workspace_data').upsert({
+        workspace_id: this.workspaceId,
+        data,
+        updated_at: new Date().toISOString()
+      });
+      app.updateSyncStatus('云同步已连接', 'tag-green');
+    } catch (e) {
+      console.error(e);
+      app.updateSyncStatus('同步失败', 'tag-red');
+    }
+  },
+
+  async pullFromCloud() {
+    if (!this.sb) return;
+    try {
+      const { data } = await this.sb.from('workspace_data').select('data').eq('workspace_id', this.workspaceId).maybeSingle();
+      if (data && data.data) {
+        this.isApplyingRemote = true;
+        localStorage.setItem(this.key, JSON.stringify(data.data));
+        app.data = data.data;
+        app.renderAll();
+        this.isApplyingRemote = false;
+      }
+    } catch (e) { console.error(e); }
+  },
+
+  disconnect() {
+    this.syncEnabled = false;
+    if (this.sb && this.channel) this.sb.removeChannel(this.channel);
+    this.channel = null;
+    this.sb = null;
+  }
+};
+
+// Listen for broadcast updates
+try {
+  const bc = new BroadcastChannel('workspace_sync');
+  bc.onmessage = (ev) => {
+    if (ev.data && ev.data.type === 'update') {
+      localStorage.setItem(Store.key, JSON.stringify(ev.data.data));
+      app.renderAll();
+    }
+  };
+} catch {}
+
+// ===================== APP =====================
+const app = {
+  data: Store.get(),
+  currentTab: 'tasks',
+  modalType: null,
+  englishFilter: 'all',
+  noteFilter: 'all',
+  noteQuery: '',
+
+  init() {
+    this.renderAll();
+    document.getElementById('task-date').textContent = new Date().toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    this.loadSettings();
+    this.checkShareLink();
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  },
+
+  switchTab(tab) {
+    this.currentTab = tab;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + tab).classList.add('active');
+    const btn = document.querySelector(`.tab-btn[onclick*="'${tab}'"]`);
+    if (btn) btn.classList.add('active');
+    this.renderAll();
+  },
+
+  // ---------- Tasks ----------
+  renderTasks() {
+    const list = document.getElementById('task-list');
+    const tasks = this.data.tasks || [];
+    const done = tasks.filter(t => t.done).length;
+    const total = tasks.length;
+    const rate = total ? Math.round(done / total * 100) : 0;
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-done').textContent = done;
+    document.getElementById('stat-rate').textContent = rate + '%';
+    document.getElementById('task-progress').style.width = rate + '%';
+    const remaining = total - done;
+    const badge = document.getElementById('badge-tasks');
+    badge.textContent = remaining;
+    badge.style.display = remaining > 0 ? 'flex' : 'none';
+
+    if (!tasks.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>今天还没有任务，添加一个吧！</p></div>';
+      return;
+    }
+    list.innerHTML = tasks.map((t, i) => `
+      <div class="card">
+        <label class="checkbox-wrap">
+          <input type="checkbox" ${t.done ? 'checked' : ''} onchange="app.toggleTask(${i})">
+          <div class="check-text ${t.done ? 'done' : ''}">
+            <div>${this.escape(t.text)}</div>
+            <div class="card-meta">
+              ${t.priority === 'high' ? '<span class="tag tag-red">高优先级</span>' : t.priority === 'medium' ? '<span class="tag tag-orange">中优先级</span>' : '<span class="tag tag-gray">低优先级</span>'}
+              ${t.due ? '<span>📅 ' + t.due + '</span>' : ''}
+            </div>
+          </div>
+        </label>
+        <button class="btn btn-icon" style="position:absolute;top:0.5rem;right:0.5rem;" onclick="app.deleteTask(${i})">🗑️</button>
+      </div>
+    `).join('');
+  },
+
+  toggleTask(i) {
+    this.data.tasks[i].done = !this.data.tasks[i].done;
+    Store.set(this.data);
+    this.renderTasks();
+  },
+
+  deleteTask(i) {
+    if (!confirm('确定删除这个任务？')) return;
+    this.data.tasks.splice(i, 1);
+    Store.set(this.data);
+    this.renderTasks();
+  },
+
+  clearCompletedTasks() {
+    const before = this.data.tasks.length;
+    this.data.tasks = this.data.tasks.filter(t => !t.done);
+    if (this.data.tasks.length < before) {
+      Store.set(this.data);
+      this.renderTasks();
+    }
+  },
+
+  addTask() {
+    const text = document.getElementById('inp-task').value.trim();
+    if (!text) return;
+    const priority = document.getElementById('inp-priority').value;
+    const due = document.getElementById('inp-due').value;
+    this.data.tasks.push({ text, priority, due, done: false, created: Date.now() });
+    Store.set(this.data);
+    this.closeModal();
+    this.renderTasks();
+  },
+
+  // ---------- English ----------
+  renderEnglish() {
+    const list = document.getElementById('english-list');
+    let items = this.data.english || [];
+    const newCount = items.filter(x => x.status === 'new').length;
+    const badge = document.getElementById('badge-english');
+    badge.textContent = newCount;
+    badge.style.display = newCount > 0 ? 'flex' : 'none';
+
+    if (this.englishFilter !== 'all') {
+      if (this.englishFilter === 'new') items = items.filter(x => x.status === 'new');
+      else items = items.filter(x => x.type === this.englishFilter);
+    }
+
+    if (!items.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">🌍</div><p>还没有记录，添加你的第一个单词吧！</p></div>';
+      return;
+    }
+    list.innerHTML = items.map((item, i) => {
+      const origIdx = this.data.english.indexOf(item);
+      return `
+      <div class="card">
+        <div class="card-title">
+          <span>${this.escape(item.content)}</span>
+          <div style="display:flex;gap:0.3rem;">
+            <button class="btn btn-icon btn-sm" onclick="app.cycleEnglishStatus(${origIdx})">${item.status === 'new' ? '🔴' : item.status === 'familiar' ? '🟡' : '🟢'}</button>
+            <button class="btn btn-icon btn-sm" onclick="app.deleteEnglish(${origIdx})">🗑️</button>
+          </div>
+        </div>
+        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.3rem;">${this.escape(item.phonetic || '')} ${this.escape(item.meaning || '')}</div>
+        ${item.example ? `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;border-left:2px solid var(--rule);padding-left:0.5rem;">"${this.escape(item.example)}"</div>` : ''}
+        <div class="card-meta">
+          <span class="tag ${item.type === 'word' ? 'tag-green' : item.type === 'phrase' ? 'tag-orange' : 'tag-gray'}">${item.type === 'word' ? '单词' : item.type === 'phrase' ? '短语' : '句子'}</span>
+          <span class="tag ${item.status === 'new' ? 'tag-red' : item.status === 'familiar' ? 'tag-orange' : 'tag-green'}">${item.status === 'new' ? '生词' : item.status === 'familiar' ? '熟悉' : '掌握'}</span>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  filterEnglish(f) {
+    this.englishFilter = f;
+    document.querySelectorAll('#english-filters .chip').forEach(c => c.classList.toggle('active', c.dataset.filter === f));
+    this.renderEnglish();
+  },
+
+  cycleEnglishStatus(i) {
+    const s = this.data.english[i].status;
+    this.data.english[i].status = s === 'new' ? 'familiar' : s === 'familiar' ? 'mastered' : 'new';
+    Store.set(this.data);
+    this.renderEnglish();
+  },
+
+  deleteEnglish(i) {
+    if (!confirm('确定删除？')) return;
+    this.data.english.splice(i, 1);
+    Store.set(this.data);
+    this.renderEnglish();
+  },
+
+  addEnglish() {
+    const content = document.getElementById('inp-en-content').value.trim();
+    if (!content) return;
+    this.data.english.push({
+      content,
+      phonetic: document.getElementById('inp-en-phonetic').value.trim(),
+      meaning: document.getElementById('inp-en-meaning').value.trim(),
+      example: document.getElementById('inp-en-example').value.trim(),
+      type: document.getElementById('inp-en-type').value,
+      status: 'new',
+      created: Date.now()
+    });
+    Store.set(this.data);
+    this.closeModal();
+    this.renderEnglish();
+  },
+
+  reviewEnglish() {
+    const items = this.data.english.filter(x => x.status !== 'mastered');
+    if (!items.length) { alert('没有需要复习的内容！'); return; }
+    const item = items[Math.floor(Math.random() * items.length)];
+    const idx = this.data.english.indexOf(item);
+    alert(`🎲 随机复习\n\n${item.content}\n${item.phonetic || ''}\n${item.meaning || ''}\n\n例句：${item.example || '无'}`);
+  },
+
+  // ---------- Driving ----------
+  renderDriving() {
+    const list = document.getElementById('driving-list');
+    const items = this.data.driving || [];
+    const totalHours = items.reduce((s, x) => s + (parseFloat(x.duration) || 0), 0);
+    const avgRating = items.length ? (items.reduce((s, x) => s + (parseInt(x.rating) || 0), 0) / items.length).toFixed(1) : 0;
+    document.getElementById('stat-drive-count').textContent = items.length;
+    document.getElementById('stat-drive-hours').textContent = totalHours.toFixed(1);
+    document.getElementById('stat-drive-avg').textContent = avgRating;
+
+    if (!items.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">🚗</div><p>还没有练车记录，开始记录你的第一次吧！</p></div>';
+      return;
+    }
+    list.innerHTML = items.slice().reverse().map((item, i) => {
+      const origIdx = this.data.driving.indexOf(item);
+      const stars = [1,2,3,4,5].map(s => `<span class="star ${s <= item.rating ? 'active' : ''}">★</span>`).join('');
+      const projects = (item.projects || []).map(p => `<span class="tag tag-green">${this.escape(p)}</span>`).join(' ');
+      return `
+      <div class="card">
+        <div class="card-title">
+          <span>🗓️ ${item.date}</span>
+          <button class="btn btn-icon btn-sm" onclick="app.deleteDriving(${origIdx})">🗑️</button>
+        </div>
+        <div class="stars">${stars}</div>
+        <div class="card-meta" style="margin-top:0.3rem;">
+          <span>⏱️ ${item.duration}小时</span>
+          <span>${projects}</span>
+        </div>
+        ${item.note ? `<div style="margin-top:0.5rem;font-size:0.85rem;">${this.escape(item.note)}</div>` : ''}
+      </div>`;
+    }).join('');
+  },
+
+  deleteDriving(i) {
+    if (!confirm('确定删除这条记录？')) return;
+    this.data.driving.splice(i, 1);
+    Store.set(this.data);
+    this.renderDriving();
+  },
+
+  addDriving() {
+    const date = document.getElementById('inp-drive-date').value;
+    const duration = document.getElementById('inp-drive-duration').value;
+    if (!date || !duration) return;
+    const projects = [];
+    document.querySelectorAll('.drive-project:checked').forEach(cb => projects.push(cb.value));
+    this.data.driving.push({
+      date,
+      duration: parseFloat(duration),
+      rating: parseInt(document.getElementById('inp-drive-rating').value),
+      projects,
+      note: document.getElementById('inp-drive-note').value.trim(),
+      created: Date.now()
+    });
+    Store.set(this.data);
+    this.closeModal();
+    this.renderDriving();
+  },
+
+  // ---------- Notes ----------
+  renderNotes() {
+    const list = document.getElementById('notes-list');
+    let items = this.data.notes || [];
+    if (this.noteFilter !== 'all') items = items.filter(x => x.color === this.noteFilter);
+    if (this.noteQuery) {
+      const q = this.noteQuery.toLowerCase();
+      items = items.filter(x => (x.title || '').toLowerCase().includes(q) || (x.content || '').toLowerCase().includes(q));
+    }
+    // pinned first
+    items = items.slice().sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+
+    if (!items.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>还没有备忘录，添加一条吧！</p></div>';
+      return;
+    }
+    list.innerHTML = items.map((item, i) => {
+      const origIdx = this.data.notes.indexOf(item);
+      const colorMap = { yellow: '#ffe066', green: '#8ce99a', blue: '#74c0fc', pink: '#f783ac', purple: '#b197fc' };
+      return `
+      <div class="card" style="border-left:4px solid ${colorMap[item.color] || '#ddd'};">
+        <div class="card-title">
+          <span>${item.pinned ? '📌 ' : ''}${this.escape(item.title || '无标题')}</span>
+          <div style="display:flex;gap:0.3rem;">
+            <button class="btn btn-icon btn-sm" onclick="app.togglePinNote(${origIdx})">${item.pinned ? '📌' : '📍'}</button>
+            <button class="btn btn-icon btn-sm" onclick="app.deleteNote(${origIdx})">🗑️</button>
+          </div>
+        </div>
+        <div style="font-size:0.88rem;white-space:pre-wrap;">${this.escape(item.content)}</div>
+        <div class="card-meta" style="margin-top:0.4rem;">
+          <span>${new Date(item.created).toLocaleString('zh-CN')}</span>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  filterNotes(f) {
+    this.noteFilter = f;
+    document.querySelectorAll('#note-filters .chip').forEach(c => c.classList.toggle('active', c.dataset.filter === f));
+    this.renderNotes();
+  },
+
+  searchNotes() {
+    this.noteQuery = document.getElementById('note-search').value.trim();
+    this.renderNotes();
+  },
+
+  togglePinNote(i) {
+    this.data.notes[i].pinned = !this.data.notes[i].pinned;
+    Store.set(this.data);
+    this.renderNotes();
+  },
+
+  deleteNote(i) {
+    if (!confirm('确定删除这条备忘录？')) return;
+    this.data.notes.splice(i, 1);
+    Store.set(this.data);
+    this.renderNotes();
+  },
+
+  addNote() {
+    const title = document.getElementById('inp-note-title').value.trim();
+    const content = document.getElementById('inp-note-content').value.trim();
+    if (!title && !content) return;
+    const color = document.querySelector('.color-dot.selected')?.dataset.color || 'yellow';
+    this.data.notes.push({ title, content, color, pinned: false, created: Date.now() });
+    Store.set(this.data);
+    this.closeModal();
+    this.renderNotes();
+  },
+
+  // ---------- Modal System ----------
+  openModal(type) {
+    this.modalType = type;
+    const m = document.getElementById('modal');
+    const body = document.getElementById('modal-body');
+    const title = document.getElementById('modal-title');
+    m.classList.add('show');
+
+    if (type === 'task') {
+      title.textContent = '新增任务';
+      body.innerHTML = `
+        <div class="form-group"><label>任务内容</label><input type="text" class="input" id="inp-task" placeholder="今天要做什么？"></div>
+        <div class="form-group"><label>优先级</label><select class="input" id="inp-priority"><option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option></select></div>
+        <div class="form-group"><label>截止日期</label><input type="date" class="input" id="inp-due"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="app.addTask()">保存</button>
+      `;
+    } else if (type === 'english') {
+      title.textContent = '新增英语记录';
+      body.innerHTML = `
+        <div class="form-group"><label>类型</label><select class="input" id="inp-en-type"><option value="word">单词</option><option value="phrase">短语</option><option value="sentence">句子</option></select></div>
+        <div class="form-group"><label>内容</label><input type="text" class="input" id="inp-en-content" placeholder="Word / Phrase / Sentence"></div>
+        <div class="form-group"><label>音标</label><input type="text" class="input" id="inp-en-phonetic" placeholder="/.../"></div>
+        <div class="form-group"><label>释义</label><input type="text" class="input" id="inp-en-meaning" placeholder="中文意思"></div>
+        <div class="form-group"><label>例句</label><textarea class="textarea" id="inp-en-example" placeholder="例句..."></textarea></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="app.addEnglish()">保存</button>
+      `;
+    } else if (type === 'driving') {
+      title.textContent = '新增练车记录';
+      body.innerHTML = `
+        <div class="form-group"><label>日期</label><input type="date" class="input" id="inp-drive-date" value="${new Date().toISOString().split('T')[0]}"></div>
+        <div class="form-group"><label>时长（小时）</label><input type="number" class="input" id="inp-drive-duration" step="0.5" min="0.5" max="12" value="1"></div>
+        <div class="form-group"><label>评分</label><input type="range" class="input" id="inp-drive-rating" min="1" max="5" value="3" oninput="document.getElementById('drive-rating-label').textContent=this.value+'星'"><div id="drive-rating-label" style="text-align:center;color:var(--muted);font-size:0.85rem;">3星</div></div>
+        <div class="form-group"><label>练习项目</label><div style="display:flex;flex-wrap:wrap;gap:0.5rem;font-size:0.85rem;">
+          <label><input type="checkbox" class="drive-project" value="倒车入库"> 倒车入库</label>
+          <label><input type="checkbox" class="drive-project" value="侧方停车"> 侧方停车</label>
+          <label><input type="checkbox" class="drive-project" value="坡道定点"> 坡道定点</label>
+          <label><input type="checkbox" class="drive-project" value="直角转弯"> 直角转弯</label>
+          <label><input type="checkbox" class="drive-project" value="曲线行驶"> 曲线行驶</label>
+          <label><input type="checkbox" class="drive-project" value="路考"> 路考</label>
+        </div></div>
+        <div class="form-group"><label>心得</label><textarea class="textarea" id="inp-drive-note" placeholder="今天练车的感觉..."></textarea></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="app.addDriving()">保存</button>
+      `;
+    } else if (type === 'note') {
+      title.textContent = '新增备忘录';
+      body.innerHTML = `
+        <div class="form-group"><label>标题</label><input type="text" class="input" id="inp-note-title" placeholder="标题（可选）"></div>
+        <div class="form-group"><label>内容</label><textarea class="textarea" id="inp-note-content" placeholder="记点什么..."></textarea></div>
+        <div class="form-group"><label>颜色</label><div style="display:flex;gap:0.6rem;">
+          <span class="color-dot color-yellow selected" data-color="yellow" onclick="app.selectColor(this)"></span>
+          <span class="color-dot color-green" data-color="green" onclick="app.selectColor(this)"></span>
+          <span class="color-dot color-blue" data-color="blue" onclick="app.selectColor(this)"></span>
+          <span class="color-dot color-pink" data-color="pink" onclick="app.selectColor(this)"></span>
+          <span class="color-dot color-purple" data-color="purple" onclick="app.selectColor(this)"></span>
+        </div></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="app.addNote()">保存</button>
+      `;
+    }
+  },
+
+  closeModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById('modal').classList.remove('show');
+    this.modalType = null;
+  },
+
+  selectColor(el) {
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+    el.classList.add('selected');
+  },
+
+  // ---------- Sync & Settings ----------
+  exportData() {
+    const blob = new Blob([JSON.stringify(this.data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `workspace_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (confirm(`导入后将覆盖现有 ${this.data.tasks.length} 条任务、${this.data.english.length} 条英语记录等，确定吗？`)) {
+            this.data = data;
+            Store.set(this.data);
+            this.renderAll();
+            alert('导入成功！');
+          }
+        } catch { alert('文件格式错误'); }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  },
+
+  generateShareLink() {
+    try {
+      const json = JSON.stringify(this.data);
+      const compressed = btoa(unescape(encodeURIComponent(json)));
+      const url = location.origin + location.pathname + '#share=' + compressed;
+      navigator.clipboard.writeText(url).then(() => alert('分享链接已复制到剪贴板！\n\n在另一台设备的浏览器中打开此链接即可同步数据。')).catch(() => prompt('复制以下链接到另一台设备打开：', url));
+    } catch { alert('生成链接失败'); }
+  },
+
+  checkShareLink() {
+    const hash = location.hash;
+    if (hash.startsWith('#share=')) {
+      try {
+        const data = JSON.parse(decodeURIComponent(escape(atob(hash.slice(7)))));
+        if (confirm('检测到分享数据，是否导入？这将覆盖本地现有数据。')) {
+          this.data = data;
+          Store.set(this.data);
+          location.hash = '';
+          this.renderAll();
+        }
+      } catch { location.hash = ''; }
+    }
+  },
+
+  async connectSupabase() {
+    const url = document.getElementById('sb-url').value.trim();
+    const key = document.getElementById('sb-key').value.trim();
+    let workspaceId = document.getElementById('workspace-id').value.trim();
+    if (!workspaceId) {
+      workspaceId = 'workbench-' + Math.random().toString(36).slice(2, 10);
+      document.getElementById('workspace-id').value = workspaceId;
+    }
+    if (!url || !key) { alert('请填写 Supabase URL 和 Anon Key'); return; }
+    this.updateSyncStatus('正在连接...', 'tag-orange');
+    const ok = await Store.initSupabase(url, key, workspaceId);
+    if (ok) {
+      localStorage.setItem('workspace_id', workspaceId);
+      this.data.settings.supabase = { url, key, workspaceId };
+      Store.set(this.data);
+      this.updateSyncStatus('云同步已连接', 'tag-green');
+      alert('连接成功！已启用实时云同步。\n\n请在手机端打开同一个网址，并填写同一个工作区ID即可同步。');
+    } else {
+      this.updateSyncStatus('连接失败', 'tag-red');
+      alert('连接失败，请检查：\n1. Supabase URL 和 Anon Key 是否正确\n2. 是否已经执行 supabase-setup.sql\n3. 是否开启了 Realtime');
+    }
+  },
+
+  disconnectSupabase() {
+    Store.disconnect();
+    delete this.data.settings.supabase;
+    Store.set(this.data);
+    document.getElementById('sb-url').value = '';
+    document.getElementById('sb-key').value = '';
+    this.updateSyncStatus('本地存储', 'tag-gray');
+    alert('已断开云同步，数据仅保存在本地。');
+  },
+
+  loadSettings() {
+    const s = this.data.settings || {};
+    if (!s.supabase?.workspaceId) {
+      const existingId = localStorage.getItem('workspace_id') || ('workbench-' + Math.random().toString(36).slice(2, 10));
+      localStorage.setItem('workspace_id', existingId);
+      document.getElementById('workspace-id').value = existingId;
+    }
+    if (s.supabase) {
+      document.getElementById('sb-url').value = s.supabase.url || '';
+      document.getElementById('sb-key').value = s.supabase.key || '';
+      document.getElementById('workspace-id').value = s.supabase.workspaceId || localStorage.getItem('workspace_id') || '';
+      localStorage.setItem('workspace_id', document.getElementById('workspace-id').value);
+      Store.initSupabase(s.supabase.url, s.supabase.key, s.supabase.workspaceId);
+      this.updateSyncStatus('正在连接...', 'tag-orange');
+    }
+  },
+
+  updateSyncStatus(text, tagClass) {
+    const el = document.getElementById('sync-mode-text');
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'tag ' + tagClass;
+  },
+
+  copyWorkspaceId() {
+    const id = document.getElementById('workspace-id').value.trim();
+    if (!id) { alert('请先生成或填写工作区ID'); return; }
+    localStorage.setItem('workspace_id', id);
+    navigator.clipboard?.writeText(id).then(() => alert('工作区ID已复制')).catch(() => prompt('复制这个工作区ID：', id));
+  },
+
+  clearAllData() {
+    if (!confirm('⚠️ 确定清空所有数据？此操作不可恢复！')) return;
+    this.data = Store.defaultData();
+    Store.set(this.data);
+    this.renderAll();
+  },
+
+  // ---------- Utils ----------
+  renderAll() {
+    this.renderTasks();
+    this.renderEnglish();
+    this.renderDriving();
+    this.renderNotes();
+  },
+
+  escape(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+};
+
+app.init();
+</script>
+</body>
+</html>
