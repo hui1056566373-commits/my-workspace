@@ -185,6 +185,45 @@
     color: var(--muted);
   }
 
+  .task-detail {
+    margin-top: 0.55rem;
+    padding: 0.65rem;
+    border-radius: 10px;
+    background: #f7faf9;
+    color: var(--ink);
+    font-size: 0.86rem;
+    word-break: break-word;
+  }
+  .task-detail img,
+  .rich-editor img {
+    max-width: 100%;
+    border-radius: 10px;
+    margin: 0.45rem 0;
+    display: block;
+    border: 1px solid var(--rule);
+  }
+  .rich-toolbar {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.45rem;
+    flex-wrap: wrap;
+  }
+  .rich-editor {
+    min-height: 140px;
+    padding: 0.75rem 0.9rem;
+    border: 1.5px solid var(--rule);
+    border-radius: 10px;
+    background: var(--surface);
+    outline: none;
+    overflow-y: auto;
+    font-size: 0.95rem;
+  }
+  .rich-editor:focus { border-color: var(--accent); }
+  .rich-editor:empty::before {
+    content: attr(data-placeholder);
+    color: var(--muted);
+  }
+
   /* Tags */
   .tag {
     display: inline-block;
@@ -259,12 +298,12 @@
     background: none;
     border: none;
     color: var(--muted);
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     cursor: pointer;
     transition: color 0.15s;
     position: relative;
   }
-  .tab-btn .tab-icon { font-size: 1.35rem; line-height: 1; }
+  .tab-btn .tab-icon { font-size: 1.2rem; line-height: 1; }
   .tab-btn.active { color: var(--accent); }
   .tab-btn.active::after {
     content: '';
@@ -519,7 +558,26 @@
     <div id="notes-list"></div>
   </div>
 
-  <!-- ========== TAB 5: 设置/同步 ========== -->
+  <!-- ========== TAB 5: 愿望清单 ========== -->
+  <div class="page" id="page-wishlist">
+    <div class="page-header">
+      <div>
+        <h1>愿望清单</h1>
+        <div class="date">想买、想去、想完成的事</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary btn-sm" onclick="app.openModal('wish')">+ 新增</button>
+      </div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-item"><div class="num" id="stat-wish-total">0</div><div class="lbl">全部</div></div>
+      <div class="summary-item"><div class="num" id="stat-wish-open">0</div><div class="lbl">进行中</div></div>
+      <div class="summary-item"><div class="num" id="stat-wish-done">0</div><div class="lbl">已实现</div></div>
+    </div>
+    <div id="wishlist-list"></div>
+  </div>
+
+  <!-- ========== TAB 6: 设置/同步 ========== -->
   <div class="page" id="page-settings">
     <div class="page-header">
       <div><h1>设置</h1></div>
@@ -595,6 +653,10 @@
     <span class="tab-icon">📝</span>
     <span>备忘</span>
   </button>
+  <button class="tab-btn" onclick="app.switchTab('wishlist')">
+    <span class="tab-icon">⭐</span>
+    <span>愿望</span>
+  </button>
   <button class="tab-btn" onclick="app.switchTab('settings')">
     <span class="tab-icon">⚙️</span>
     <span>设置</span>
@@ -636,7 +698,7 @@ const Store = {
   },
 
   defaultData() {
-    return { tasks: [], english: [], driving: [], notes: [], settings: {} };
+    return { tasks: [], english: [], driving: [], notes: [], wishlist: [], settings: {} };
   },
 
   broadcast(data) {
@@ -721,6 +783,7 @@ try {
   bc.onmessage = (ev) => {
     if (ev.data && ev.data.type === 'update') {
       localStorage.setItem(Store.key, JSON.stringify(ev.data.data));
+      app.data = ev.data.data;
       app.renderAll();
     }
   };
@@ -740,6 +803,8 @@ const app = {
     document.getElementById('task-date').textContent = new Date().toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     this.loadSettings();
     this.checkShareLink();
+    this.checkTaskReminders();
+    setInterval(() => this.checkTaskReminders(), 30000);
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
@@ -775,21 +840,30 @@ const app = {
       list.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>今天还没有任务，添加一个吧！</p></div>';
       return;
     }
-    list.innerHTML = tasks.map((t, i) => `
+    list.innerHTML = tasks.map((t, i) => {
+      const title = t.title || t.text || '未命名任务';
+      const detail = t.detail ? this.sanitizeRich(t.detail) : '';
+      const startText = t.startAt ? '<span>开始：' + this.formatDateTime(t.startAt) + '</span>' : '';
+      const endText = t.endAt ? '<span>截止：' + this.formatDateTime(t.endAt) + '</span>' : (t.due ? '<span>截止：' + t.due + '</span>' : '');
+      const reminderText = t.reminderAt ? '<span class="tag tag-orange">提醒：' + this.formatDateTime(t.reminderAt) + '</span>' : '';
+      return `
       <div class="card">
         <label class="checkbox-wrap">
           <input type="checkbox" ${t.done ? 'checked' : ''} onchange="app.toggleTask(${i})">
           <div class="check-text ${t.done ? 'done' : ''}">
-            <div>${this.escape(t.text)}</div>
+            <div>${this.escape(title)}</div>
             <div class="card-meta">
               ${t.priority === 'high' ? '<span class="tag tag-red">高优先级</span>' : t.priority === 'medium' ? '<span class="tag tag-orange">中优先级</span>' : '<span class="tag tag-gray">低优先级</span>'}
-              ${t.due ? '<span>📅 ' + t.due + '</span>' : ''}
+              ${startText}
+              ${endText}
+              ${reminderText}
             </div>
           </div>
         </label>
+        ${detail ? `<div class="task-detail">${detail}</div>` : ''}
         <button class="btn btn-icon" style="position:absolute;top:0.5rem;right:0.5rem;" onclick="app.deleteTask(${i})">🗑️</button>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   },
 
   toggleTask(i) {
@@ -815,11 +889,28 @@ const app = {
   },
 
   addTask() {
-    const text = document.getElementById('inp-task').value.trim();
-    if (!text) return;
+    const title = document.getElementById('inp-task-title').value.trim();
+    if (!title) return;
     const priority = document.getElementById('inp-priority').value;
-    const due = document.getElementById('inp-due').value;
-    this.data.tasks.push({ text, priority, due, done: false, created: Date.now() });
+    const startAt = document.getElementById('inp-start-at').value;
+    const endAt = document.getElementById('inp-end-at').value;
+    const reminderAt = document.getElementById('inp-reminder-at').value;
+    const detail = this.sanitizeRich(document.getElementById('inp-task-detail').innerHTML.trim());
+    if (reminderAt && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {});
+    }
+    this.data.tasks.push({
+      title,
+      text: title,
+      detail,
+      priority,
+      startAt,
+      endAt,
+      reminderAt,
+      done: false,
+      reminded: false,
+      created: Date.now()
+    });
     Store.set(this.data);
     this.closeModal();
     this.renderTasks();
@@ -1040,6 +1131,69 @@ const app = {
     this.renderNotes();
   },
 
+  // ---------- Wishlist ----------
+  renderWishlist() {
+    const list = document.getElementById('wishlist-list');
+    if (!list) return;
+    const items = this.data.wishlist || [];
+    const done = items.filter(x => x.done).length;
+    document.getElementById('stat-wish-total').textContent = items.length;
+    document.getElementById('stat-wish-open').textContent = items.length - done;
+    document.getElementById('stat-wish-done').textContent = done;
+    if (!items.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">⭐</div><p>还没有愿望，先写下一个想实现的目标吧！</p></div>';
+      return;
+    }
+    list.innerHTML = items.map((w, i) => `
+      <div class="card">
+        <div class="card-title">
+          <span style="${w.done ? 'text-decoration:line-through;color:var(--muted);' : ''}">${this.escape(w.name)}</span>
+          <div style="display:flex;gap:0.3rem;">
+            <button class="btn btn-icon btn-sm" onclick="app.toggleWish(${i})">${w.done ? '✅' : '⭕'}</button>
+            <button class="btn btn-icon btn-sm" onclick="app.deleteWish(${i})">🗑️</button>
+          </div>
+        </div>
+        <div class="card-meta">
+          ${w.priority === 'high' ? '<span class="tag tag-red">很想要</span>' : w.priority === 'medium' ? '<span class="tag tag-orange">想要</span>' : '<span class="tag tag-gray">先观望</span>'}
+          ${w.price ? '<span>预算：¥' + this.escape(w.price) + '</span>' : ''}
+          ${w.link ? '<a href="' + this.escape(w.link) + '" target="_blank" style="color:var(--accent);">打开链接</a>' : ''}
+        </div>
+        ${w.reason ? `<div style="margin-top:0.5rem;font-size:0.86rem;white-space:pre-wrap;">${this.escape(w.reason)}</div>` : ''}
+      </div>
+    `).join('');
+  },
+
+  addWish() {
+    const name = document.getElementById('inp-wish-name').value.trim();
+    if (!name) return;
+    this.data.wishlist = this.data.wishlist || [];
+    this.data.wishlist.push({
+      name,
+      price: document.getElementById('inp-wish-price').value.trim(),
+      link: document.getElementById('inp-wish-link').value.trim(),
+      reason: document.getElementById('inp-wish-reason').value.trim(),
+      priority: document.getElementById('inp-wish-priority').value,
+      done: false,
+      created: Date.now()
+    });
+    Store.set(this.data);
+    this.closeModal();
+    this.renderWishlist();
+  },
+
+  toggleWish(i) {
+    this.data.wishlist[i].done = !this.data.wishlist[i].done;
+    Store.set(this.data);
+    this.renderWishlist();
+  },
+
+  deleteWish(i) {
+    if (!confirm('确定删除这个愿望？')) return;
+    this.data.wishlist.splice(i, 1);
+    Store.set(this.data);
+    this.renderWishlist();
+  },
+
   // ---------- Modal System ----------
   openModal(type) {
     this.modalType = type;
@@ -1051,9 +1205,21 @@ const app = {
     if (type === 'task') {
       title.textContent = '新增任务';
       body.innerHTML = `
-        <div class="form-group"><label>任务内容</label><input type="text" class="input" id="inp-task" placeholder="今天要做什么？"></div>
+        <div class="form-group"><label>任务标题</label><input type="text" class="input" id="inp-task-title" placeholder="今天要做什么？"></div>
         <div class="form-group"><label>优先级</label><select class="input" id="inp-priority"><option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option></select></div>
-        <div class="form-group"><label>截止日期</label><input type="date" class="input" id="inp-due"></div>
+        <div class="form-group"><label>起始时间</label><input type="datetime-local" class="input" id="inp-start-at"></div>
+        <div class="form-group"><label>截止时间</label><input type="datetime-local" class="input" id="inp-end-at"></div>
+        <div class="form-group"><label>铃声提醒时间</label><input type="datetime-local" class="input" id="inp-reminder-at"></div>
+        <div class="form-group">
+          <label>富文本详情 / 图片</label>
+          <div class="rich-toolbar">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="app.formatRich('bold')">加粗</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="app.formatRich('insertUnorderedList')">列表</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('inp-task-images').click()">上传图片</button>
+          </div>
+          <div id="inp-task-detail" class="rich-editor" contenteditable="true" data-placeholder="可以输入文字、粘贴内容，或上传图片..."></div>
+          <input type="file" id="inp-task-images" accept="image/*" multiple style="display:none" onchange="app.handleTaskImages(this.files)">
+        </div>
         <button class="btn btn-primary" style="width:100%;" onclick="app.addTask()">保存</button>
       `;
     } else if (type === 'english') {
@@ -1096,6 +1262,16 @@ const app = {
           <span class="color-dot color-purple" data-color="purple" onclick="app.selectColor(this)"></span>
         </div></div>
         <button class="btn btn-primary" style="width:100%;" onclick="app.addNote()">保存</button>
+      `;
+    } else if (type === 'wish') {
+      title.textContent = '新增愿望';
+      body.innerHTML = `
+        <div class="form-group"><label>愿望名称</label><input type="text" class="input" id="inp-wish-name" placeholder="例如：买一台新相机 / 去云南旅行"></div>
+        <div class="form-group"><label>预算 / 目标金额</label><input type="number" class="input" id="inp-wish-price" placeholder="例如：2999"></div>
+        <div class="form-group"><label>链接</label><input type="url" class="input" id="inp-wish-link" placeholder="商品链接或参考资料链接"></div>
+        <div class="form-group"><label>优先级</label><select class="input" id="inp-wish-priority"><option value="low">先观望</option><option value="medium" selected>想要</option><option value="high">很想要</option></select></div>
+        <div class="form-group"><label>为什么想要</label><textarea class="textarea" id="inp-wish-reason" placeholder="记录理由、对比、计划..."></textarea></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="app.addWish()">保存</button>
       `;
     }
   },
@@ -1243,10 +1419,17 @@ const app = {
 
   // ---------- Utils ----------
   renderAll() {
+    this.data.tasks = this.data.tasks || [];
+    this.data.english = this.data.english || [];
+    this.data.driving = this.data.driving || [];
+    this.data.notes = this.data.notes || [];
+    this.data.wishlist = this.data.wishlist || [];
+    this.data.settings = this.data.settings || {};
     this.renderTasks();
     this.renderEnglish();
     this.renderDriving();
     this.renderNotes();
+    this.renderWishlist();
   },
 
   escape(str) {
@@ -1254,6 +1437,111 @@ const app = {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  },
+
+  formatDateTime(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  },
+
+  sanitizeRich(html) {
+    if (!html) return '';
+    const template = document.createElement('template');
+    template.innerHTML = html;
+    template.content.querySelectorAll('script,style,iframe,object,embed').forEach(n => n.remove());
+    template.content.querySelectorAll('*').forEach(el => {
+      [...el.attributes].forEach(attr => {
+        const name = attr.name.toLowerCase();
+        if (name.startsWith('on')) el.removeAttribute(attr.name);
+        if ((name === 'href' || name === 'src') && !/^(https?:|data:image\/)/i.test(attr.value)) el.removeAttribute(attr.name);
+      });
+    });
+    return template.innerHTML;
+  },
+
+  formatRich(command) {
+    document.execCommand(command, false, null);
+    document.getElementById('inp-task-detail')?.focus();
+  },
+
+  handleTaskImages(files) {
+    if (!files || !files.length) return;
+    [...files].forEach(file => this.compressImage(file).then(dataUrl => {
+      const editor = document.getElementById('inp-task-detail');
+      if (!editor) return;
+      editor.focus();
+      document.execCommand('insertHTML', false, `<img src="${dataUrl}" alt="任务图片">`);
+    }).catch(() => alert('图片处理失败，请换一张试试')));
+  },
+
+  compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          const max = 900;
+          const scale = Math.min(1, max / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.76));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  },
+
+  checkTaskReminders() {
+    const tasks = this.data.tasks || [];
+    const now = Date.now();
+    const reminded = JSON.parse(localStorage.getItem('task_reminded_v1') || '{}');
+    tasks.forEach((t, i) => {
+      if (!t.reminderAt || t.done) return;
+      const key = (t.created || i) + '_' + t.reminderAt;
+      const reminderTime = new Date(t.reminderAt).getTime();
+      if (!reminded[key] && reminderTime <= now) {
+        reminded[key] = true;
+        localStorage.setItem('task_reminded_v1', JSON.stringify(reminded));
+        this.playReminderSound();
+        const title = t.title || t.text || '任务提醒';
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('任务提醒', { body: title, icon: 'assets/icon-192.png' });
+        } else {
+          alert('任务提醒：' + title);
+        }
+      }
+    });
+  },
+
+  playReminderSound() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContext();
+      const playTone = (delay, freq) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        const start = ctx.currentTime + delay;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.25, start + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.45);
+        osc.start(start);
+        osc.stop(start + 0.5);
+      };
+      playTone(0, 880);
+      playTone(0.55, 660);
+    } catch {}
   }
 };
 

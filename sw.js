@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workspace-v2-cloud-sync';
+const CACHE_NAME = 'workspace-v3-tasks-wishlist';
 const ASSETS = [
   '/my-workspace/index.html',
   '/my-workspace/manifest.json',
