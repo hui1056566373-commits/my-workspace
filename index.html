@@ -435,6 +435,168 @@
     margin-top: 0.1rem;
   }
 
+  /* English learning board */
+  .english-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px;
+    padding: 1rem;
+    margin-bottom: 0.9rem;
+    color: #fff;
+    background: linear-gradient(135deg, #2d8a6e 0%, #45b37f 52%, #f0b84b 100%);
+    box-shadow: 0 10px 24px rgba(45, 138, 110, 0.22);
+  }
+  .english-hero::after {
+    content: '';
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    right: -52px;
+    top: -48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+  }
+  .english-hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    position: relative;
+    z-index: 1;
+  }
+  .english-hero-title {
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+  }
+  .english-hero-sub {
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    opacity: 0.88;
+  }
+  .english-mascot {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.8rem;
+    background: rgba(255,255,255,0.22);
+    border: 1px solid rgba(255,255,255,0.26);
+  }
+  .english-goal {
+    position: relative;
+    z-index: 1;
+    margin-top: 0.9rem;
+  }
+  .english-goal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    opacity: 0.94;
+    margin-bottom: 0.35rem;
+  }
+  .english-progress {
+    height: 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.28);
+    overflow: hidden;
+  }
+  .english-progress .fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: #fff;
+    transition: width 0.28s ease;
+  }
+  .english-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.55rem;
+    margin-bottom: 0.85rem;
+  }
+  .english-stat-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 0.75rem 0.55rem;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .english-stat-card .num {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .english-stat-card .lbl {
+    margin-top: 0.12rem;
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+  .english-card {
+    border-radius: 20px;
+    padding: 0.95rem;
+    border: 1px solid rgba(45, 138, 110, 0.08);
+  }
+  .english-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .english-type-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    background: var(--accent-light);
+  }
+  .english-word {
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.25;
+    word-break: break-word;
+  }
+  .english-meaning {
+    margin-top: 0.25rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .english-example {
+    margin-top: 0.65rem;
+    padding: 0.65rem;
+    border-radius: 14px;
+    background: #f7faf9;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-style: italic;
+    line-height: 1.45;
+  }
+  .english-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.24rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+  .status-new { background: #fde8e8; color: var(--danger); }
+  .status-familiar { background: var(--accent2-light); color: var(--accent2); }
+  .status-mastered { background: var(--accent-light); color: var(--accent); }
+
   /* Color dots for notes */
   .color-dot {
     width: 18px; height: 18px;
@@ -497,12 +659,33 @@
     <div class="page-header">
       <div>
         <h1>每日英语</h1>
-        <div class="date">单词 / 短语 / 句子积累</div>
+        <div class="date">像刷卡片一样轻量复习</div>
       </div>
       <div class="header-actions">
         <button class="btn btn-icon" onclick="app.reviewEnglish()" title="随机复习">🎲</button>
         <button class="btn btn-primary btn-sm" onclick="app.openModal('english')">+ 新增</button>
       </div>
+    </div>
+    <div class="english-hero">
+      <div class="english-hero-top">
+        <div>
+          <div class="english-hero-title">今日学习目标</div>
+          <div class="english-hero-sub">先积累，再复习，最后变成熟词</div>
+        </div>
+        <div class="english-mascot">🦉</div>
+      </div>
+      <div class="english-goal">
+        <div class="english-goal-row">
+          <span>掌握进度</span>
+          <span id="en-goal-text">0%</span>
+        </div>
+        <div class="english-progress"><div class="fill" id="en-progress"></div></div>
+      </div>
+    </div>
+    <div class="english-stats">
+      <div class="english-stat-card"><div class="num" id="en-stat-total">0</div><div class="lbl">总积累</div></div>
+      <div class="english-stat-card"><div class="num" id="en-stat-new">0</div><div class="lbl">待复习</div></div>
+      <div class="english-stat-card"><div class="num" id="en-stat-mastered">0</div><div class="lbl">已掌握</div></div>
     </div>
     <div class="chips" id="english-filters">
       <button class="chip active" data-filter="all" onclick="app.filterEnglish('all')">全部</button>
@@ -510,6 +693,8 @@
       <button class="chip" data-filter="phrase" onclick="app.filterEnglish('phrase')">短语</button>
       <button class="chip" data-filter="sentence" onclick="app.filterEnglish('sentence')">句子</button>
       <button class="chip" data-filter="new" onclick="app.filterEnglish('new')">生词</button>
+      <button class="chip" data-filter="familiar" onclick="app.filterEnglish('familiar')">熟悉</button>
+      <button class="chip" data-filter="mastered" onclick="app.filterEnglish('mastered')">掌握</button>
     </div>
     <div id="english-list"></div>
   </div>
@@ -610,9 +795,10 @@
           <label>Supabase Anon Key</label>
           <input type="text" class="input" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIs...">
         </div>
-        <div style="display:flex;gap:0.5rem;">
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
           <button class="btn btn-primary btn-sm" onclick="app.connectSupabase()">连接并启用同步</button>
           <button class="btn btn-secondary btn-sm" onclick="app.disconnectSupabase()">断开</button>
+          <button class="btn btn-secondary btn-sm" onclick="app.manualSync()">🔄 立即同步</button>
         </div>
         <p style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem;">
           提示：先在 Supabase 执行压缩包里的 <strong>supabase-setup.sql</strong>，再把项目 URL、Anon Key 和同一个工作区ID填到电脑与手机端。
@@ -637,7 +823,7 @@
 <nav class="tab-bar">
   <button class="tab-btn active" onclick="app.switchTab('tasks')">
     <span class="tab-icon">✅</span>
-    <span>任务</span>
+    <span>每日任务</span>
     <span class="tab-badge" id="badge-tasks" style="display:none">0</span>
   </button>
   <button class="tab-btn" onclick="app.switchTab('english')">
@@ -651,11 +837,11 @@
   </button>
   <button class="tab-btn" onclick="app.switchTab('notes')">
     <span class="tab-icon">📝</span>
-    <span>备忘</span>
+    <span>备忘录</span>
   </button>
   <button class="tab-btn" onclick="app.switchTab('wishlist')">
     <span class="tab-icon">⭐</span>
-    <span>愿望</span>
+    <span>愿望清单</span>
   </button>
   <button class="tab-btn" onclick="app.switchTab('settings')">
     <span class="tab-icon">⚙️</span>
@@ -683,6 +869,7 @@ const Store = {
   syncEnabled: false,
   workspaceId: 'default',
   isApplyingRemote: false,
+  syncTimer: null,
 
   get() {
     try {
@@ -692,6 +879,8 @@ const Store = {
   },
 
   set(data) {
+    data.settings = data.settings || {};
+    data.settings._localUpdated = Date.now();
     localStorage.setItem(this.key, JSON.stringify(data));
     this.broadcast(data);
     if (this.syncEnabled && this.sb && !this.isApplyingRemote) this.pushToCloud(data);
@@ -736,8 +925,18 @@ const Store = {
         if (status === 'SUBSCRIBED') app.updateSyncStatus('云同步已连接', 'tag-green');
       });
       await this.pushToCloud(app.data);
+      this.startSyncLoop();
       return true;
     } catch (e) { console.error(e); return false; }
+  },
+
+  startSyncLoop() {
+    this.stopSyncLoop();
+    this.syncTimer = setInterval(() => this.pullFromCloud(), 30000);
+  },
+
+  stopSyncLoop() {
+    if (this.syncTimer) { clearInterval(this.syncTimer); this.syncTimer = null; }
   },
 
   async pushToCloud(data) {
@@ -760,17 +959,25 @@ const Store = {
     try {
       const { data } = await this.sb.from('workspace_data').select('data').eq('workspace_id', this.workspaceId).maybeSingle();
       if (data && data.data) {
-        this.isApplyingRemote = true;
-        localStorage.setItem(this.key, JSON.stringify(data.data));
-        app.data = data.data;
-        app.renderAll();
-        this.isApplyingRemote = false;
+        const localRaw = localStorage.getItem(this.key);
+        const localData = localRaw ? JSON.parse(localRaw) : this.defaultData();
+        const localUpdated = localData.settings?._localUpdated || 0;
+        const remoteUpdated = data.data.settings?._localUpdated || 0;
+        if (JSON.stringify(localData) !== JSON.stringify(data.data)) {
+          this.isApplyingRemote = true;
+          localStorage.setItem(this.key, JSON.stringify(data.data));
+          app.data = data.data;
+          app.renderAll();
+          this.isApplyingRemote = false;
+          app.updateSyncStatus('已同步最新数据', 'tag-green');
+        }
       }
     } catch (e) { console.error(e); }
   },
 
   disconnect() {
     this.syncEnabled = false;
+    this.stopSyncLoop();
     if (this.sb && this.channel) this.sb.removeChannel(this.channel);
     this.channel = null;
     this.sb = null;
@@ -794,6 +1001,7 @@ const app = {
   data: Store.get(),
   currentTab: 'tasks',
   modalType: null,
+  editIndex: null,
   englishFilter: 'all',
   noteFilter: 'all',
   noteQuery: '',
@@ -808,6 +1016,11 @@ const app = {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && Store.syncEnabled) {
+        Store.pullFromCloud();
+      }
+    });
   },
 
   switchTab(tab) {
@@ -861,7 +1074,10 @@ const app = {
           </div>
         </label>
         ${detail ? `<div class="task-detail">${detail}</div>` : ''}
-        <button class="btn btn-icon" style="position:absolute;top:0.5rem;right:0.5rem;" onclick="app.deleteTask(${i})">🗑️</button>
+        <div style="position:absolute;top:0.5rem;right:0.5rem;display:flex;gap:0.35rem;">
+          <button class="btn btn-icon" onclick="app.editTask(${i})" title="编辑">✏️</button>
+          <button class="btn btn-icon" onclick="app.deleteTask(${i})" title="删除">🗑️</button>
+        </div>
       </div>`;
     }).join('');
   },
@@ -877,6 +1093,10 @@ const app = {
     this.data.tasks.splice(i, 1);
     Store.set(this.data);
     this.renderTasks();
+  },
+
+  editTask(i) {
+    this.openModal('task', i);
   },
 
   clearCompletedTasks() {
@@ -899,7 +1119,7 @@ const app = {
     if (reminderAt && 'Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {});
     }
-    this.data.tasks.push({
+    const nextTask = {
       title,
       text: title,
       detail,
@@ -910,7 +1130,20 @@ const app = {
       done: false,
       reminded: false,
       created: Date.now()
-    });
+    };
+    if (this.editIndex !== null && this.data.tasks[this.editIndex]) {
+      const oldTask = this.data.tasks[this.editIndex];
+      this.data.tasks[this.editIndex] = {
+        ...oldTask,
+        ...nextTask,
+        done: oldTask.done || false,
+        reminded: oldTask.reminded || false,
+        created: oldTask.created || Date.now(),
+        updated: Date.now()
+      };
+    } else {
+      this.data.tasks.push(nextTask);
+    }
     Store.set(this.data);
     this.closeModal();
     this.renderTasks();
@@ -921,35 +1154,54 @@ const app = {
     const list = document.getElementById('english-list');
     let items = this.data.english || [];
     const newCount = items.filter(x => x.status === 'new').length;
+    const masteredCount = items.filter(x => x.status === 'mastered').length;
+    const total = items.length;
+    const progress = total ? Math.round(masteredCount / total * 100) : 0;
     const badge = document.getElementById('badge-english');
     badge.textContent = newCount;
     badge.style.display = newCount > 0 ? 'flex' : 'none';
+    document.getElementById('en-stat-total').textContent = total;
+    document.getElementById('en-stat-new').textContent = newCount;
+    document.getElementById('en-stat-mastered').textContent = masteredCount;
+    document.getElementById('en-progress').style.width = progress + '%';
+    document.getElementById('en-goal-text').textContent = progress + '%';
 
     if (this.englishFilter !== 'all') {
-      if (this.englishFilter === 'new') items = items.filter(x => x.status === 'new');
+      if (['new', 'familiar', 'mastered'].includes(this.englishFilter)) items = items.filter(x => x.status === this.englishFilter);
       else items = items.filter(x => x.type === this.englishFilter);
     }
 
     if (!items.length) {
-      list.innerHTML = '<div class="empty-state"><div class="icon">🌍</div><p>还没有记录，添加你的第一个单词吧！</p></div>';
+      list.innerHTML = '<div class="empty-state"><div class="icon">🌍</div><p>这里还没有内容，先添加一张学习卡片吧！</p></div>';
       return;
     }
     list.innerHTML = items.map((item, i) => {
       const origIdx = this.data.english.indexOf(item);
+      const typeText = item.type === 'word' ? '单词' : item.type === 'phrase' ? '短语' : '句子';
+      const typeIcon = item.type === 'word' ? 'Aa' : item.type === 'phrase' ? '💬' : '✍️';
+      const statusText = item.status === 'new' ? '待复习' : item.status === 'familiar' ? '熟悉中' : '已掌握';
+      const statusClass = item.status === 'new' ? 'status-new' : item.status === 'familiar' ? 'status-familiar' : 'status-mastered';
+      const statusIcon = item.status === 'new' ? '🔴' : item.status === 'familiar' ? '🟡' : '🟢';
       return `
-      <div class="card">
-        <div class="card-title">
-          <span>${this.escape(item.content)}</span>
-          <div style="display:flex;gap:0.3rem;">
-            <button class="btn btn-icon btn-sm" onclick="app.cycleEnglishStatus(${origIdx})">${item.status === 'new' ? '🔴' : item.status === 'familiar' ? '🟡' : '🟢'}</button>
-            <button class="btn btn-icon btn-sm" onclick="app.deleteEnglish(${origIdx})">🗑️</button>
+      <div class="card english-card">
+        <div class="english-card-head">
+          <div class="english-type-icon">${typeIcon}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="english-word">${this.escape(item.content)}</div>
+            <div class="english-meaning">
+              ${item.phonetic ? '<span>' + this.escape(item.phonetic) + '</span> · ' : ''}
+              <span>${this.escape(item.meaning || '还没有释义')}</span>
+            </div>
           </div>
+          <button class="btn btn-icon btn-sm" onclick="app.deleteEnglish(${origIdx})">🗑️</button>
         </div>
-        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.3rem;">${this.escape(item.phonetic || '')} ${this.escape(item.meaning || '')}</div>
-        ${item.example ? `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;border-left:2px solid var(--rule);padding-left:0.5rem;">"${this.escape(item.example)}"</div>` : ''}
-        <div class="card-meta">
-          <span class="tag ${item.type === 'word' ? 'tag-green' : item.type === 'phrase' ? 'tag-orange' : 'tag-gray'}">${item.type === 'word' ? '单词' : item.type === 'phrase' ? '短语' : '句子'}</span>
-          <span class="tag ${item.status === 'new' ? 'tag-red' : item.status === 'familiar' ? 'tag-orange' : 'tag-green'}">${item.status === 'new' ? '生词' : item.status === 'familiar' ? '熟悉' : '掌握'}</span>
+        ${item.example ? `<div class="english-example">"${this.escape(item.example)}"</div>` : ''}
+        <div class="english-actions">
+          <div class="card-meta">
+            <span class="tag ${item.type === 'word' ? 'tag-green' : item.type === 'phrase' ? 'tag-orange' : 'tag-gray'}">${typeText}</span>
+            <span>${new Date(item.created).toLocaleDateString('zh-CN')}</span>
+          </div>
+          <button class="status-pill ${statusClass}" onclick="app.cycleEnglishStatus(${origIdx})">${statusIcon} ${statusText}</button>
         </div>
       </div>`;
     }).join('');
@@ -1195,21 +1447,23 @@ const app = {
   },
 
   // ---------- Modal System ----------
-  openModal(type) {
+  openModal(type, editIndex = null) {
     this.modalType = type;
+    this.editIndex = editIndex;
     const m = document.getElementById('modal');
     const body = document.getElementById('modal-body');
     const title = document.getElementById('modal-title');
     m.classList.add('show');
 
     if (type === 'task') {
-      title.textContent = '新增任务';
+      const task = editIndex !== null ? (this.data.tasks[editIndex] || {}) : {};
+      title.textContent = editIndex !== null ? '编辑任务' : '新增任务';
       body.innerHTML = `
-        <div class="form-group"><label>任务标题</label><input type="text" class="input" id="inp-task-title" placeholder="今天要做什么？"></div>
-        <div class="form-group"><label>优先级</label><select class="input" id="inp-priority"><option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option></select></div>
-        <div class="form-group"><label>起始时间</label><input type="datetime-local" class="input" id="inp-start-at"></div>
-        <div class="form-group"><label>截止时间</label><input type="datetime-local" class="input" id="inp-end-at"></div>
-        <div class="form-group"><label>铃声提醒时间</label><input type="datetime-local" class="input" id="inp-reminder-at"></div>
+        <div class="form-group"><label>任务标题</label><input type="text" class="input" id="inp-task-title" placeholder="今天要做什么？" value="${this.escape(task.title || task.text || '')}"></div>
+        <div class="form-group"><label>优先级</label><select class="input" id="inp-priority"><option value="low" ${task.priority === 'low' ? 'selected' : ''}>低</option><option value="medium" ${!task.priority || task.priority === 'medium' ? 'selected' : ''}>中</option><option value="high" ${task.priority === 'high' ? 'selected' : ''}>高</option></select></div>
+        <div class="form-group"><label>起始时间</label><input type="datetime-local" class="input" id="inp-start-at" value="${this.escape(task.startAt || '')}"></div>
+        <div class="form-group"><label>截止时间</label><input type="datetime-local" class="input" id="inp-end-at" value="${this.escape(task.endAt || '')}"></div>
+        <div class="form-group"><label>铃声提醒时间</label><input type="datetime-local" class="input" id="inp-reminder-at" value="${this.escape(task.reminderAt || '')}"></div>
         <div class="form-group">
           <label>富文本详情 / 图片</label>
           <div class="rich-toolbar">
@@ -1217,20 +1471,20 @@ const app = {
             <button type="button" class="btn btn-secondary btn-sm" onclick="app.formatRich('insertUnorderedList')">列表</button>
             <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('inp-task-images').click()">上传图片</button>
           </div>
-          <div id="inp-task-detail" class="rich-editor" contenteditable="true" data-placeholder="可以输入文字、粘贴内容，或上传图片..."></div>
+          <div id="inp-task-detail" class="rich-editor" contenteditable="true" data-placeholder="可以输入文字、粘贴内容，或上传图片...">${this.sanitizeRich(task.detail || '')}</div>
           <input type="file" id="inp-task-images" accept="image/*" multiple style="display:none" onchange="app.handleTaskImages(this.files)">
         </div>
-        <button class="btn btn-primary" style="width:100%;" onclick="app.addTask()">保存</button>
+        <button class="btn btn-primary" style="width:100%;" onclick="app.addTask()">${editIndex !== null ? '保存修改' : '保存'}</button>
       `;
     } else if (type === 'english') {
-      title.textContent = '新增英语记录';
+      title.textContent = '新增学习卡片';
       body.innerHTML = `
-        <div class="form-group"><label>类型</label><select class="input" id="inp-en-type"><option value="word">单词</option><option value="phrase">短语</option><option value="sentence">句子</option></select></div>
-        <div class="form-group"><label>内容</label><input type="text" class="input" id="inp-en-content" placeholder="Word / Phrase / Sentence"></div>
+        <div class="form-group"><label>卡片类型</label><select class="input" id="inp-en-type"><option value="word">单词</option><option value="phrase">短语</option><option value="sentence">句子</option></select></div>
+        <div class="form-group"><label>英文内容</label><input type="text" class="input" id="inp-en-content" placeholder="例如：consistency / keep going / Practice makes perfect."></div>
         <div class="form-group"><label>音标</label><input type="text" class="input" id="inp-en-phonetic" placeholder="/.../"></div>
         <div class="form-group"><label>释义</label><input type="text" class="input" id="inp-en-meaning" placeholder="中文意思"></div>
-        <div class="form-group"><label>例句</label><textarea class="textarea" id="inp-en-example" placeholder="例句..."></textarea></div>
-        <button class="btn btn-primary" style="width:100%;" onclick="app.addEnglish()">保存</button>
+        <div class="form-group"><label>例句 / 使用场景</label><textarea class="textarea" id="inp-en-example" placeholder="写一个例句，或者记录你在哪里看到它..."></textarea></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="app.addEnglish()">保存到卡片库</button>
       `;
     } else if (type === 'driving') {
       title.textContent = '新增练车记录';
@@ -1280,6 +1534,7 @@ const app = {
     if (e && e.target !== e.currentTarget) return;
     document.getElementById('modal').classList.remove('show');
     this.modalType = null;
+    this.editIndex = null;
   },
 
   selectColor(el) {
@@ -1377,6 +1632,18 @@ const app = {
     document.getElementById('sb-key').value = '';
     this.updateSyncStatus('本地存储', 'tag-gray');
     alert('已断开云同步，数据仅保存在本地。');
+  },
+
+  async manualSync() {
+    if (!Store.syncEnabled || !Store.sb) {
+      alert('请先连接云同步');
+      return;
+    }
+    this.updateSyncStatus('正在同步...', 'tag-orange');
+    await Store.pushToCloud(this.data);
+    await Store.pullFromCloud();
+    this.updateSyncStatus('同步完成', 'tag-green');
+    alert('手动同步完成！');
   },
 
   loadSettings() {
