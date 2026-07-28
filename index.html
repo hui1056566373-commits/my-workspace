@@ -862,6 +862,7 @@
 
 <script>
 // ===================== DATA STORE =====================
+const SB_CONFIG_KEY = 'workspace_supabase_config';
 const Store = {
   key: 'workspace_data_v1',
   sb: null,
@@ -1010,6 +1011,7 @@ const app = {
     this.renderAll();
     document.getElementById('task-date').textContent = new Date().toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     this.loadSettings();
+    this.loadSupabaseConfig();
     this.checkShareLink();
     this.checkTaskReminders();
     setInterval(() => this.checkTaskReminders(), 30000);
@@ -1616,6 +1618,7 @@ const app = {
       localStorage.setItem('workspace_id', workspaceId);
       this.data.settings.supabase = { url, key, workspaceId };
       Store.set(this.data);
+      this.saveSupabaseConfig(url, key, workspaceId);
       this.updateSyncStatus('云同步已连接', 'tag-green');
       alert('连接成功！已启用实时云同步。\n\n请在手机端打开同一个网址，并填写同一个工作区ID即可同步。');
     } else {
@@ -1630,8 +1633,32 @@ const app = {
     Store.set(this.data);
     document.getElementById('sb-url').value = '';
     document.getElementById('sb-key').value = '';
+    localStorage.removeItem(SB_CONFIG_KEY);
     this.updateSyncStatus('本地存储', 'tag-gray');
     alert('已断开云同步，数据仅保存在本地。');
+  },
+
+  saveSupabaseConfig(url, key, workspaceId) {
+    try {
+      localStorage.setItem(SB_CONFIG_KEY, JSON.stringify({ url, key, workspaceId, saved: Date.now() }));
+    } catch {}
+  },
+
+  loadSupabaseConfig() {
+    try {
+      const raw = localStorage.getItem(SB_CONFIG_KEY);
+      if (!raw) return false;
+      const config = JSON.parse(raw);
+      if (!config.url || !config.key || !config.workspaceId) return false;
+      document.getElementById('sb-url').value = config.url;
+      document.getElementById('sb-key').value = config.key;
+      document.getElementById('workspace-id').value = config.workspaceId;
+      localStorage.setItem('workspace_id', config.workspaceId);
+      Store.initSupabase(config.url, config.key, config.workspaceId).then(ok => {
+        if (ok) this.updateSyncStatus('云同步已连接', 'tag-green');
+      });
+      return true;
+    } catch { return false; }
   },
 
   async manualSync() {
