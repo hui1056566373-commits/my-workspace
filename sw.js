@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workspace-v3-tasks-wishlist';
+const CACHE_NAME = 'workspace-v6-task-edit-tabs';
 const ASSETS = [
   '/my-workspace/index.html',
   '/my-workspace/manifest.json',
