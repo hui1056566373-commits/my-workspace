@@ -1687,6 +1687,7 @@ const app = {
       localStorage.setItem('workspace_id', document.getElementById('workspace-id').value);
       Store.initSupabase(s.supabase.url, s.supabase.key, s.supabase.workspaceId);
       this.updateSyncStatus('正在连接...', 'tag-orange');
+      this.saveSupabaseConfig(s.supabase.url, s.supabase.key, s.supabase.workspaceId);
     }
   },
 
