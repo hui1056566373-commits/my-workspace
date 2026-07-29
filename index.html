@@ -1003,6 +1003,7 @@ const app = {
   currentTab: 'tasks',
   modalType: null,
   editIndex: null,
+  editNoteIndex: null,
   englishFilter: 'all',
   noteFilter: 'all',
   noteQuery: '',
@@ -1338,6 +1339,7 @@ const app = {
         <div class="card-title">
           <span>${item.pinned ? '📌 ' : ''}${this.escape(item.title || '无标题')}</span>
           <div style="display:flex;gap:0.3rem;">
+            <button class="btn btn-icon btn-sm" onclick="app.openModal('note', ${origIdx})">✏️</button>
             <button class="btn btn-icon btn-sm" onclick="app.togglePinNote(${origIdx})">${item.pinned ? '📌' : '📍'}</button>
             <button class="btn btn-icon btn-sm" onclick="app.deleteNote(${origIdx})">🗑️</button>
           </div>
@@ -1379,7 +1381,13 @@ const app = {
     const content = document.getElementById('inp-note-content').value.trim();
     if (!title && !content) return;
     const color = document.querySelector('.color-dot.selected')?.dataset.color || 'yellow';
-    this.data.notes.push({ title, content, color, pinned: false, created: Date.now() });
+    if (this.editNoteIndex !== null && this.data.notes[this.editNoteIndex]) {
+      this.data.notes[this.editNoteIndex].title = title;
+      this.data.notes[this.editNoteIndex].content = content;
+      this.data.notes[this.editNoteIndex].color = color;
+    } else {
+      this.data.notes.push({ title, content, color, pinned: false, created: Date.now() });
+    }
     Store.set(this.data);
     this.closeModal();
     this.renderNotes();
@@ -1506,18 +1514,20 @@ const app = {
         <button class="btn btn-primary" style="width:100%;" onclick="app.addDriving()">保存</button>
       `;
     } else if (type === 'note') {
-      title.textContent = '新增备忘录';
+      this.editNoteIndex = index ?? null;
+      const editing = this.editNoteIndex !== null ? this.data.notes[this.editNoteIndex] : null;
+      title.textContent = editing ? '编辑备忘录' : '新增备忘录';
       body.innerHTML = `
-        <div class="form-group"><label>标题</label><input type="text" class="input" id="inp-note-title" placeholder="标题（可选）"></div>
-        <div class="form-group"><label>内容</label><textarea class="textarea" id="inp-note-content" placeholder="记点什么..."></textarea></div>
+        <div class="form-group"><label>标题</label><input type="text" class="input" id="inp-note-title" placeholder="标题（可选）" value="${this.escape(editing?.title || '')}"></div>
+        <div class="form-group"><label>内容</label><textarea class="textarea" id="inp-note-content" placeholder="记点什么...">${this.escape(editing?.content || '')}</textarea></div>
         <div class="form-group"><label>颜色</label><div style="display:flex;gap:0.6rem;">
-          <span class="color-dot color-yellow selected" data-color="yellow" onclick="app.selectColor(this)"></span>
-          <span class="color-dot color-green" data-color="green" onclick="app.selectColor(this)"></span>
-          <span class="color-dot color-blue" data-color="blue" onclick="app.selectColor(this)"></span>
-          <span class="color-dot color-pink" data-color="pink" onclick="app.selectColor(this)"></span>
-          <span class="color-dot color-purple" data-color="purple" onclick="app.selectColor(this)"></span>
+          <span class="color-dot color-yellow ${editing?.color === 'yellow' || !editing ? 'selected' : ''}" data-color="yellow" onclick="app.selectColor(this)"></span>
+          <span class="color-dot color-green ${editing?.color === 'green' ? 'selected' : ''}" data-color="green" onclick="app.selectColor(this)"></span>
+          <span class="color-dot color-blue ${editing?.color === 'blue' ? 'selected' : ''}" data-color="blue" onclick="app.selectColor(this)"></span>
+          <span class="color-dot color-pink ${editing?.color === 'pink' ? 'selected' : ''}" data-color="pink" onclick="app.selectColor(this)"></span>
+          <span class="color-dot color-purple ${editing?.color === 'purple' ? 'selected' : ''}" data-color="purple" onclick="app.selectColor(this)"></span>
         </div></div>
-        <button class="btn btn-primary" style="width:100%;" onclick="app.addNote()">保存</button>
+        <button class="btn btn-primary" style="width:100%;" onclick="app.addNote()">${editing ? '更新' : '保存'}</button>
       `;
     } else if (type === 'wish') {
       title.textContent = '新增愿望';
@@ -1537,6 +1547,7 @@ const app = {
     document.getElementById('modal').classList.remove('show');
     this.modalType = null;
     this.editIndex = null;
+    this.editNoteIndex = null;
   },
 
   selectColor(el) {
