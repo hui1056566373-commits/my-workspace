@@ -1517,7 +1517,7 @@ const app = {
         <button class="btn btn-primary" style="width:100%;" onclick="app.addDriving()">保存</button>
       `;
     } else if (type === 'note') {
-      this.editNoteIndex = index ?? null;
+      this.editNoteIndex = editIndex;
       const editing = this.editNoteIndex !== null ? this.data.notes[this.editNoteIndex] : null;
       title.textContent = editing ? '编辑备忘录' : '新增备忘录';
       body.innerHTML = `
