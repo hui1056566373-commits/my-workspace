@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workspace-v8-note-edit';
+const CACHE_NAME = 'workspace-v9-modal-fix';
 const ASSETS = [
   '/my-workspace/index.html',
   '/my-workspace/manifest.json',
